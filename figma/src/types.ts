@@ -1,6 +1,8 @@
 /** Tipos compartidos de navegación. */
 
 export type Screen =
+  | "welcome"
+  | "account-create"
   | "home"
   | "admin"
   | "log"
@@ -15,5 +17,12 @@ export type Screen =
   | "tasks"
   | "caregivers"
   | "patient-create";
+
+export type AccountProfile = {
+  name: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+};
 
 export type PatientId = string;

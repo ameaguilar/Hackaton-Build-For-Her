@@ -1,12 +1,12 @@
 import { usePersistentState } from "../lib/storage";
 import type { StoredPatient } from "../data/patients";
-import { seedLogEntries, seedNeeds } from "../data/seed";
+import { isEconomicNeed, migrateNeed, seedLogEntries, seedNeeds } from "../data/seed";
 import { todayISO, nowTime } from "../lib/dates";
 import { seedUtilityItems } from "./UtilityScreen";
 import { Avatar } from "../components/Avatar";
 import { Icon } from "../components/Icon";
 import { TopBar } from "../components/TopBar";
-import type { PatientId, Screen } from "../types";
+import type { AccountProfile, PatientId, Screen } from "../types";
 
 function initialsOf(name: string): string {
   const parts = name
@@ -28,6 +28,8 @@ function Home({
   patient: PatientId;
   selectPatient: (patient: PatientId) => void;
 }) {
+  const [account] = usePersistentState<AccountProfile | null>("account:profile", null);
+  const firstName = account?.name.trim().split(/\s+/)[0] || "Ana";
   const [extraPatients] = usePersistentState<StoredPatient[]>("patients:extra", []);
   const [logEntries] = usePersistentState("log:entries", seedLogEntries);
   const [medItems] = usePersistentState("utility:items:medications", seedUtilityItems("medications"));
@@ -38,8 +40,8 @@ function Home({
   const [needs] = usePersistentState("needs:items", seedNeeds);
   const today = todayISO();
   const registrosHoy = logEntries.filter((entry) => (entry.date ?? today) === today).length;
-  const openNeeds = needs.filter(
-    (need) => !need.claimed && (need.kind !== "economica" || (need.raised ?? 0) < (need.goal ?? 0)),
+  const openNeeds = needs.map(migrateNeed).filter(
+    (need) => !need.claimed && (!isEconomicNeed(need) || (need.raised ?? 0) < (need.goal ?? 0)),
   ).length;
   const nextMed = medItems.find((item) => item.detail.slice(0, 5) >= nowTime())?.detail.slice(0, 5);
   const nextAppointment = appointmentItems[0]?.detail.split(" · ").slice(0, 2).join(" · ");
@@ -80,7 +82,7 @@ function Home({
     <div className="screen">
       <TopBar
         title={patientName}
-        subtitle="Buenos días, Ana"
+        subtitle={`Buenos días, ${firstName}`}
         onProfile={() => navigate("admin")}
         onPoints={() => navigate("points")}
       />

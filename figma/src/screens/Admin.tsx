@@ -3,9 +3,9 @@ import { Button } from "../components/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Icon } from "../components/Icon";
 import { TopBar } from "../components/TopBar";
-import { resetAllData } from "../lib/storage";
+import { resetAllData, usePersistentState } from "../lib/storage";
 import { useState } from "react";
-import type { Screen } from "../types";
+import type { AccountProfile, Screen } from "../types";
 
 function Admin({
   back,
@@ -17,16 +17,19 @@ function Admin({
   notify: (message: string) => void;
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
+  const [account] = usePersistentState<AccountProfile | null>("account:profile", null);
+  const name = account?.name?.trim() || "Ana Martínez";
+  const role = account?.role?.trim() || "Cuidadora principal";
   return (
     <div className="screen">
-      <TopBar title="Mi perfil" subtitle="ADMINISTRADORA PRINCIPAL" back={back} points={false} />
+      <TopBar title="Mi perfil" subtitle="MI CUENTA" back={back} points={false} />
       <main className="content">
         <section className="admin-hero">
           <Avatar person="ana" size="xl" />
           <div>
-            <span className="role-badge">Admin</span>
-            <h1>Ana Martínez</h1>
-            <p>Cuidadora principal · 3 pacientes asignados</p>
+            <span className="role-badge">Cuenta</span>
+            <h1>{name}</h1>
+            <p>{role}</p>
           </div>
         </section>
         <div className="admin-stats">

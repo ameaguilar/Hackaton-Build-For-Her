@@ -11,9 +11,12 @@ import Profile from "./screens/Profile";
 import Family from "./screens/Family";
 import Emergency from "./screens/Emergency";
 import UtilityScreen from "./screens/UtilityScreen";
-import type { PatientId, Screen } from "./types";
+import Welcome from "./screens/Welcome";
+import AccountCreate from "./screens/AccountCreate";
+import type { AccountProfile, PatientId, Screen } from "./types";
 
 export default function App() {
+  const [account, setAccount] = usePersistentState<AccountProfile | null>("account:profile", null);
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedPatient, setSelectedPatient] = usePersistentState<PatientId>(
     "ui:selectedPatient",
@@ -32,13 +35,32 @@ export default function App() {
     document.querySelector(".app-shell")?.scrollTo({ top: 0, behavior: "smooth" });
   };
   const goBack = () => {
-    const previous = history.at(-1) ?? "home";
+    const previous = history.at(-1) ?? (account ? "home" : "welcome");
     setHistory((current) => current.slice(0, -1));
     setScreen(previous);
     document.querySelector(".app-shell")?.scrollTo({ top: 0, behavior: "smooth" });
   };
+  const activeScreen: Screen = account
+    ? screen
+    : screen === "account-create"
+      ? "account-create"
+      : "welcome";
   const render = () => {
-    if (screen === "home")
+    if (activeScreen === "welcome") return <Welcome navigate={navigate} />;
+    if (activeScreen === "account-create")
+      return (
+        <AccountCreate
+          navigate={navigate}
+          notify={notify}
+          onCreate={(profile) => {
+            setAccount(profile);
+            setHistory([]);
+            setScreen("home");
+            notify(`Cuenta creada. Bienvenido, ${profile.name.split(" ")[0] || profile.name}.`);
+          }}
+        />
+      );
+    if (activeScreen === "home")
       return (
         <Home
           navigate={navigate}
@@ -47,22 +69,24 @@ export default function App() {
           selectPatient={setSelectedPatient}
         />
       );
-    if (screen === "admin") return <Admin back={goBack} navigate={navigate} notify={notify} />;
-    if (screen === "log") return <Logbook navigate={navigate} notify={notify} />;
-    if (screen === "needs")
+    if (activeScreen === "admin") return <Admin back={goBack} navigate={navigate} notify={notify} />;
+    if (activeScreen === "log") return <Logbook navigate={navigate} notify={notify} />;
+    if (activeScreen === "needs")
       return <Logbook initialSegment="needs" navigate={navigate} notify={notify} />;
-    if (screen === "notes") return <Notes navigate={navigate} notify={notify} />;
-    if (screen === "points") return <Points navigate={navigate} notify={notify} />;
-    if (screen === "profile")
+    if (activeScreen === "notes") return <Notes navigate={navigate} notify={notify} />;
+    if (activeScreen === "points") return <Points navigate={navigate} notify={notify} />;
+    if (activeScreen === "profile")
       return (
         <Profile back={goBack} navigate={navigate} notify={notify} patient={selectedPatient} />
       );
-    if (screen === "family") return <Family back={goBack} navigate={navigate} />;
-    if (screen === "emergency") return <Emergency back={goBack} notify={notify} />;
-    return <UtilityScreen kind={screen} back={goBack} navigate={navigate} notify={notify} />;
+    if (activeScreen === "family") return <Family back={goBack} navigate={navigate} />;
+    if (activeScreen === "emergency") return <Emergency back={goBack} notify={notify} />;
+    return <UtilityScreen kind={activeScreen} back={goBack} navigate={navigate} notify={notify} />;
   };
-  const showNav = ["home", "log", "needs", "notes", "points"].includes(screen);
-  const activeTab = screen === "needs" ? "log" : screen;
+  const showNav = account
+    ? ["home", "log", "needs", "notes", "points"].includes(activeScreen)
+    : false;
+  const activeTab = activeScreen === "needs" ? "log" : activeScreen;
   return (
     <div className="stage">
       <div className="app-shell">

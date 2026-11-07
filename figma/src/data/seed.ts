@@ -20,11 +20,10 @@ export type NoteItem = {
   meta: string;
 };
 
-export type NeedKind = "cita" | "economica";
-
 export type NeedItem = {
   id: string;
-  kind: NeedKind;
+  /** Tipo de apoyo exacto. Ver NEED_TYPES. (Los datos viejos usaban kind: cita/economica.) */
+  type: string;
   title: string;
   detail: string;
   priority: "Informativa" | "Media" | "Alta";
@@ -34,6 +33,39 @@ export type NeedItem = {
   goal?: number;
   contributions?: number[];
 };
+
+/** Catálogo de tipos de apoyo, con su icono dentro de la app. */
+export const NEED_TYPES: {
+  label: string;
+  icon: "calendar" | "wallet" | "cart" | "car" | "users" | "bell" | "pill";
+}[] = [
+  { label: "Acompañar a una cita", icon: "calendar" },
+  { label: "Apoyo económico", icon: "wallet" },
+  { label: "Medicamentos", icon: "pill" },
+  { label: "Comprar o llevar algo", icon: "cart" },
+  { label: "Traslado", icon: "car" },
+  { label: "Visita o compañía", icon: "users" },
+  { label: "Otro", icon: "bell" },
+];
+
+export const ECONOMIC_NEED = "Apoyo económico";
+export const APPOINTMENT_NEED = "Acompañar a una cita";
+export const MEDICATION_NEED = "Medicamentos";
+
+export function isEconomicNeed(need: Pick<NeedItem, "type">): boolean {
+  return need.type === ECONOMIC_NEED;
+}
+
+export function needIcon(type: string) {
+  return (NEED_TYPES.find((item) => item.label === type)?.icon ?? "bell") as
+    | "calendar"
+    | "wallet"
+    | "cart"
+    | "car"
+    | "users"
+    | "bell"
+    | "pill";
+}
 
 /** Semillas equivalentes a los datos de prueba que venían quemados en App.tsx. */
 import { todayISO } from "../lib/dates";
@@ -93,7 +125,7 @@ export const seedNotes: NoteItem[] = [
 export const seedNeeds: NeedItem[] = [
   {
     id: "cardiologia",
-    kind: "cita",
+    type: APPOINTMENT_NEED,
     title: "Acompañar a cardiología",
     detail: "Jueves 19 · 10:30 · Clínica Central",
     priority: "Alta",
@@ -101,7 +133,7 @@ export const seedNeeds: NeedItem[] = [
   },
   {
     id: "medicamentos-mes",
-    kind: "economica",
+    type: ECONOMIC_NEED,
     title: "Medicamentos del mes",
     detail: "Fecha límite · 24 de noviembre de 2026",
     priority: "Media",
@@ -111,3 +143,10 @@ export const seedNeeds: NeedItem[] = [
     contributions: [500],
   },
 ];
+
+/** Convierte datos viejos (antes del campo `type`) al formato actual. */
+export function migrateNeed(need: NeedItem): NeedItem {
+  if (need.type) return need;
+  const legacyKind = (need as NeedItem & { kind?: string }).kind;
+  return { ...need, type: legacyKind === "economica" ? ECONOMIC_NEED : APPOINTMENT_NEED };
+}
