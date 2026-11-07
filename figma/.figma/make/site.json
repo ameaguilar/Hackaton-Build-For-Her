@@ -1,0 +1,10 @@
+{
+  "description": "Coordina el cuidado de adultos mayores con familiares y cuidadores: registra rutinas, medicamentos y citas, comparte necesidades y mantiene a todos informados.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
