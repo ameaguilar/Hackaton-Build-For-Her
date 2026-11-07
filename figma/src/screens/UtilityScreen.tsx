@@ -7,6 +7,7 @@ import { Icon, type IconName } from "../components/Icon";
 import { IconButton } from "../components/IconButton";
 import { TopBar } from "../components/TopBar";
 import { patientProfiles, type StoredPatient } from "../data/patients";
+import { todayISO } from "../lib/dates";
 import { usePersistentState } from "../lib/storage";
 import type { Screen } from "../types";
 
@@ -19,7 +20,7 @@ const utilityContent: Record<
     subtitle: string;
     icon: IconName;
     intro: string;
-    items: { title: string; detail: string; meta: string; done?: boolean }[];
+    items: { title: string; detail: string; meta: string; done?: boolean; extraId?: string }[];
     action: string;
   }
 > = {
@@ -104,8 +105,7 @@ const utilityContent: Record<
     ],
     action: "Agregar nuevo cuidador",
   },
-  "patient-create": {
-    title: "Pacientes",
+  "patient-create": {    title: "Pacientes",
     subtitle: "PERFILES ASIGNADOS",
     icon: "users",
     intro: "3 pacientes activos",
@@ -132,6 +132,11 @@ const utilityContent: Record<
     action: "Agregar nuevo",
   },
 };
+
+/** Semillas compartidas (las usa Inicio para tarjetas con datos reales). */
+export function seedUtilityItems(kind: UtilityKind) {
+  return utilityContent[kind].items.map((item) => ({ ...item }));
+}
 
 function UtilityScreen({
   kind,
@@ -358,6 +363,8 @@ function UtilityScreen({
                         value={age}
                         onChange={setAge}
                         placeholder="Ej. 78"
+                        min="0"
+                        max="120"
                       />
                     ) : (
                       <FormField
@@ -365,6 +372,7 @@ function UtilityScreen({
                         type="date"
                         value={formDate}
                         onChange={setFormDate}
+                        min={todayISO()}
                       />
                     )}
                   </>
@@ -517,6 +525,21 @@ function UtilityScreen({
                 icon={step < maxSteps ? "chevron" : "check"}
                 onClick={() => {
                   if (step < maxSteps) {
+                    if (kind === "patient-create" && step === 1 && age) {
+                      const parsedAge = Number(age);
+                      if (!Number.isInteger(parsedAge) || parsedAge < 0 || parsedAge > 120) {
+                        notify("Escribe una edad válida (0 a 120)");
+                        return;
+                      }
+                    }
+                    if (kind === "caregivers" && step === 2 && !selectedChoice) {
+                      notify("Elige Administrador o Secundario para continuar");
+                      return;
+                    }
+                    if (kind === "patient-create" && step === 1 && formName.trim() === "") {
+                      notify("Escribe el nombre del paciente antes de continuar");
+                      return;
+                    }
                     setStep((current) => current + 1);
                     return;
                   }
@@ -620,4 +643,32 @@ function UtilityScreen({
         <ConfirmDialog
           title={`¿Eliminar «${items[deleteIndex].title}»?`}
           message="Este registro desaparecerá de la lista. Esta acción no se puede deshacer."
-        
+          confirmLabel="Eliminar"
+          onConfirm={() => {
+            const index = deleteIndex;
+            setItems((current) => current.filter((_, i) => i !== index));
+            setCompleted((current) => current.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)));
+            setDeleteIndex(null);
+            notify("Registro eliminado");
+          }}
+          onCancel={() => setDeleteIndex(null)}
+        />
+      )}
+      {deletePatientId && (
+        <ConfirmDialog
+          title="¿Eliminar este paciente?"
+          message="Se quitará del registro y del selector de Inicio. Esta acción no se puede deshacer."
+          confirmLabel="Eliminar paciente"
+          onConfirm={() => {
+            setExtraPatients((current) => current.filter((stored) => stored.id !== deletePatientId));
+            setDeletePatientId(null);
+            notify("Paciente eliminado del registro");
+          }}
+          onCancel={() => setDeletePatientId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+export default UtilityScreen;

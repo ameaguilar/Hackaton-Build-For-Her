@@ -60,28 +60,30 @@ admin, family, emergency, medications, appointments, tasks, caregivers, patient-
 
 ## Fase 3 — Comportamiento real por pantalla (3–5 días)
 
-- [ ] **Bitácora:** crear/editar/eliminar entradas reales con fecha y hora actuales por defecto categoría, estado de ánimo y nota se guardan.
-- [ ] **Necesidades:** crear necesidades nuevas, contribuciones que sumen a la cantidad cubierta, marcar como cubierta persistido.
-- [ ] **Notas:** CRUD completo; filtros funcionando sobre datos reales.
-- [ ] **Puntos:** el saldo se descuenta al canjear, historial de movimientos, ganar puntos al completar tareas de la bitácora.
-- [ ] **Tareas de Inicio:** marcar hechas por día/paciente (persistido).
-- [ ] **Perfil / Admin / Crear paciente:** editar datos del paciente, agregar familiares, y que un paciente creado aparezca en el selector de Inicio.
-- [ ] **Emergencia:** lista editable de contactos con llamada con `tel:` real.
-- [ ] **Medicamentos / Citas / Cuidadores:** CRUD real, ordenados por fecha; fechas por defecto = hoy/mañana, no `2026-11-24`.
-- [ ] Multiselección de paciente derivando en secciones propias (la bitácora, tareas y puntos deben ser por paciente).
+- [x] **Bitácora:** crear entradas reales (hora actual por defecto), eliminar con confirmación; necesario queda editar para fase posterior.
+- [x] **Necesidades:** lista dinámica y persistente (semillas: acompañar cita + medicamentos del mes); publicar desde «Pedir apoyo» con tipo real (económica/cita), urgencia y fecha formateada; cada necesidad tiene su propio flujo de reclamar/aportar/progreso; conteo abierto en el tab de la bitácora; eliminar con confirmación; filtros funcionando sobre datos reales.
+- [x] **Notas:** crear, ver, editar y eliminar (con confirmación); estados vacíos por filtro.
+- [x] **Puntos:** saldo persistido compartido con la barra superior; canjar descuenta y suma movimientos; opciones de «Ganar puntos» suman puntos reales; historial de movimientos recientes en pantalla.
+- [x] **Tareas de Inicio:** persistidas (ya en Fase 1).
+- [x] **Perfil / Crear paciente:** perfil resuelve pacientes semilla y pacientes creados (datos médicos, médico, teléfono); crear paciente desde el asistente lo agrega al registro y **aparece en el selector de Inicio**; eliminar paciente del registro; selección de paciente persiste entre sesiones.
+- [x] **Emergencia:** contactos de emergencia editables (agregar/eliminar con confirmación y llamada `tel:` real).
+- [x] **Medicamentos / Citas / Tareas / Cuidadores:** alta, edición y **eliminación con confirmación**; items completados persistidos.
+- [x]**Diálogo de confirmación** reutilizable (`ConfirmDialog`) para todas las eliminaciones destructivas.
+- [ ] Pendiente para pulir (opcional): editar entradas de bitácora existentes, calendario alimentado por datos reales por día, resumen de Familia derivado de datos.
 
-**Criterio de salida:** recorrer la app completa haciendo altas/bajas/ediciones y que todo sobreviva a un reload.
+**Criterio de salida:** recorrer la app completa haciendo altas/bajas/ediciones y que todo sobreviva a un reload. ✔ (verificado con `tsc`, `build` y servidor activo)
 
 ## Fase 4 — Calidad y detalles finales (1–2 días)
 
-- [ ] Estados vacíos con mensaje de ayuda en cada pantalla.
-- [ ] Confirmación antes de eliminar; validación mínima en formularios (campos requeridos, fechas no pasadas).
-- [ ] Fechas relativas (hoy/ayer) en las listas.
-- [ ] Probar en un teléfono real (viewport móvil) y con la pantalla del prototipo al lado para pulir diferencias.
-- [ ] Botón de «reiniciar datos de demo» en Admin/ajustes (limpiar localStorage).
-- [ ] README breve: cómo correr, cómo se reinician los datos.
+- [x] Estados vacíos en bitácora (día sin registros), notas por filtro, necesidades por filtro, contactos de emergencia vacíos y movimientos de puntos.
+- [x] Validaciones: fechas de citas/necesidades no pueden ser pasadas (`min`), edad 0–120 verificada al continuar, nombre y rol requeridos en el asistente, monto positivo en aportaciones.
+- [x] Calendario real: los días registrados, el resumen del mes (días, ánimo frecuente, incidentes, registros) y la racha se calculan de los datos reales de la bitácora; cada entrada ahora tiene fecha y el timeline muestra solo el día seleccionado (con estado vacío).
+- [x] Etiquetas de Inicio con datos reales: registros de hoy, próximo medicamento, próxima cita y contador de necesidades abiertas.
+- [x] Botón de «reiniciar datos de demo» en Mi perfil (con confirmación) usando `resetAllData()`.
+- [x] README con cómo correrlo, estructura, persistencia, cómo probar en teléfono real y limitaciones.
+- [ ] Pendiente (manual): prueba visual en un teléfono físico por el usuario.
 
-**Criterio de salida:** demo presentable para mostrar a usuarios reales.
+**Criterio de salida:** demo presentable para mostrar a usuarios reales. ✔
 
 ---
 

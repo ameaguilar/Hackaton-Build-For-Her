@@ -5,6 +5,8 @@ export type LogEntry = {
   category: string;
   note: string;
   mood: string;
+  /** Fecha local ISO (YYYY-MM-DD). Las entradas viejas sin fecha se toman como hoy. */
+  date?: string;
 };
 
 export type NoteItem = {
@@ -34,24 +36,29 @@ export type NeedItem = {
 };
 
 /** Semillas equivalentes a los datos de prueba que venían quemados en App.tsx. */
+import { todayISO } from "../lib/dates";
+
 export const seedLogEntries: LogEntry[] = [
   {
     time: "08:15",
     category: "Alimentación",
     note: "Avena, fruta y té. Buen apetito.",
     mood: "☺",
+    date: todayISO(),
   },
   {
     time: "09:00",
     category: "Medicamento",
     note: "Losartán · 50 mg",
     mood: "☺",
+    date: todayISO(),
   },
   {
     time: "11:40",
     category: "Ánimo",
     note: "Conversó con Luis por teléfono.",
     mood: "🙂",
+    date: todayISO(),
   },
 ];
 

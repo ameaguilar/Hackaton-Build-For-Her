@@ -1,5 +1,8 @@
 import { usePersistentState } from "../lib/storage";
 import type { StoredPatient } from "../data/patients";
+import { seedLogEntries, seedNeeds } from "../data/seed";
+import { todayISO, nowTime } from "../lib/dates";
+import { seedUtilityItems } from "./UtilityScreen";
 import { Avatar } from "../components/Avatar";
 import { Icon } from "../components/Icon";
 import { TopBar } from "../components/TopBar";
@@ -26,6 +29,20 @@ function Home({
   selectPatient: (patient: PatientId) => void;
 }) {
   const [extraPatients] = usePersistentState<StoredPatient[]>("patients:extra", []);
+  const [logEntries] = usePersistentState("log:entries", seedLogEntries);
+  const [medItems] = usePersistentState("utility:items:medications", seedUtilityItems("medications"));
+  const [appointmentItems] = usePersistentState(
+    "utility:items:appointments",
+    seedUtilityItems("appointments"),
+  );
+  const [needs] = usePersistentState("needs:items", seedNeeds);
+  const today = todayISO();
+  const registrosHoy = logEntries.filter((entry) => (entry.date ?? today) === today).length;
+  const openNeeds = needs.filter(
+    (need) => !need.claimed && (need.kind !== "economica" || (need.raised ?? 0) < (need.goal ?? 0)),
+  ).length;
+  const nextMed = medItems.find((item) => item.detail.slice(0, 5) >= nowTime())?.detail.slice(0, 5);
+  const nextAppointment = appointmentItems[0]?.detail.split(" · ").slice(0, 2).join(" · ");
   const patientName =
     extraPatients.find((p) => p.id === patient)?.short ??
     extraPatients.find((p) => p.id === patient)?.name ??
@@ -107,7 +124,7 @@ function Home({
               <Icon name="book" />
             </span>
             <strong>Bitácora</strong>
-            <small>3 registros hoy</small>
+            <small>{registrosHoy} registro{registrosHoy === 1 ? "" : "s"} hoy</small>
             <Icon name="chevron" size={18} />
           </button>
           <button className="quick-card yellow" onClick={() => navigate("medications")}>
@@ -115,7 +132,7 @@ function Home({
               <Icon name="pill" />
             </span>
             <strong>Medicamentos</strong>
-            <small>Próximo 14:00</small>
+            <small>{nextMed ? `Próximo ${nextMed}` : "Todo tomado hoy"}</small>
             <Icon name="chevron" size={18} />
           </button>
           <button className="quick-card peach" onClick={() => navigate("appointments")}>
@@ -123,7 +140,7 @@ function Home({
               <Icon name="calendar" />
             </span>
             <strong>Citas</strong>
-            <small>Jueves, 10:30</small>
+            <small>{nextAppointment ?? "Sin citas programadas"}</small>
             <Icon name="chevron" size={18} />
           </button>
           <button className="quick-card blue" onClick={() => navigate("family")}>
@@ -188,7 +205,7 @@ function Home({
             <Avatar person="luis" size="sm" />
           </span>
           <span>
-            <strong>2 necesidades abiertas</strong>
+            <strong>{openNeeds} necesidad{openNeeds === 1 ? "" : "es"} abierta{openNeeds === 1 ? "" : "s"}</strong>
             <small>La familia puede apoyar</small>
           </span>
           <Icon name="chevron" size={18} />

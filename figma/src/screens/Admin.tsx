@@ -1,7 +1,10 @@
 import { Avatar } from "../components/Avatar";
 import { Button } from "../components/Button";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { Icon } from "../components/Icon";
 import { TopBar } from "../components/TopBar";
+import { resetAllData } from "../lib/storage";
+import { useState } from "react";
 import type { Screen } from "../types";
 
 function Admin({
@@ -13,6 +16,7 @@ function Admin({
   navigate: (screen: Screen) => void;
   notify: (message: string) => void;
 }) {
+  const [confirmReset, setConfirmReset] = useState(false);
   return (
     <div className="screen">
       <TopBar title="Mi perfil" subtitle="ADMINISTRADORA PRINCIPAL" back={back} points={false} />
@@ -98,7 +102,26 @@ function Admin({
         <Button variant="secondary" icon="edit" onClick={() => notify("Datos de Ana listos para editar")}>
           Editar mis datos
         </Button>
+        <Button variant="danger" icon="alert" onClick={() => setConfirmReset(true)}>
+          Reiniciar datos de la demo
+        </Button>
+        <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 8 }}>
+          Borra todo lo guardado en este dispositivo (entradas, notas, pacientes nuevos…) y vuelve
+          a los datos de ejemplo iniciales.
+        </p>
       </main>
+      {confirmReset && (
+        <ConfirmDialog
+          title="¿Reiniciar todos los datos?"
+          message="Se borrarán los registros guardados en este dispositivo y la app volverá a los datos de ejemplo. No afecta a otros dispositivos."
+          confirmLabel="Reiniciar demo"
+          onConfirm={() => {
+            resetAllData();
+            window.location.reload();
+          }}
+          onCancel={() => setConfirmReset(false)}
+        />
+      )}
     </div>
   );
 }

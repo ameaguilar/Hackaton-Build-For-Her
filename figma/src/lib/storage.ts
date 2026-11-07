@@ -64,11 +64,26 @@ if (typeof window !== "undefined") {
   });
 }
 
+/** Borra todos los datos de la app (solo este dispositivo). */
+export function resetAllData() {
+  try {
+    const removed: string[] = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const fullKey = localStorage.key(index);
+      if (fullKey && fullKey.startsWith(PREFIX)) removed.push(fullKey);
+    }
+    removed.forEach((fullKey) => localStorage.removeItem(fullKey));
+  } catch {
+    // Sin localStorage disponible: nada que borrar.
+  }
+  cache.clear();
+  listeners.forEach((group) => group.forEach((listener) => listener()));
+}
+
 export function usePersistentState<T>(
   key: string,
   initial: T,
-): [T, (value: T | ((current: T) => T)) => void] {
-  const subscribe = useCallback(
+): [T, (value: T | ((current: T) => T)) => void] {  const subscribe = useCallback(
     (listener: Listener) => {
       const fullKey = keyOf(key);
       let group = listeners.get(fullKey);

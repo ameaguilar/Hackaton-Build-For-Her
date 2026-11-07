@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BottomNav } from "./components/BottomNav";
 import { Icon } from "./components/Icon";
+import { usePersistentState } from "./lib/storage";
 import Home from "./screens/Home";
 import Admin from "./screens/Admin";
 import { Logbook } from "./screens/Logbook";
@@ -14,7 +15,10 @@ import type { PatientId, Screen } from "./types";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
-  const [selectedPatient, setSelectedPatient] = useState<PatientId>("jose");
+  const [selectedPatient, setSelectedPatient] = usePersistentState<PatientId>(
+    "ui:selectedPatient",
+    "jose",
+  );
   const [history, setHistory] = useState<Screen[]>([]);
   const [toast, setToast] = useState("");
   const notify = (message: string) => {

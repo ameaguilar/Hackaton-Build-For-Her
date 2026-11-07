@@ -9,6 +9,7 @@ import { TopBar } from "../components/TopBar";
 import { CalendarView } from "./CalendarView";
 import { NeedsView } from "./NeedsView";
 import { seedLogEntries, seedNeeds, type LogEntry, type NeedItem } from "../data/seed";
+import { longDateLabel, nowTime, plusDaysISO, todayISO } from "../lib/dates";
 import { usePersistentState } from "../lib/storage";
 import type { Screen } from "../types";
 
@@ -24,33 +25,28 @@ export function Logbook({
   const [segment, setSegment] = useState<"calendar" | "needs">(initialSegment);
   const [sheet, setSheet] = useState(false);
   const [sheetMode, setSheetMode] = useState<"timeline" | "entry" | "need">("timeline");
-  const [selectedDay, setSelectedDay] = useState(18);
+  const [selectedDate, setSelectedDate] = useState<{ iso: string; label: string }>(() => ({
+    iso: todayISO(),
+    label: longDateLabel(todayISO()),
+  }));
   const [category, setCategory] = useState("Alimentación");
   const [entryNote, setEntryNote] = useState("");
   const [needTitle, setNeedTitle] = useState("");
   const [tipo, setTipo] = useState("Acompañar a una cita");
   const [mood, setMood] = useState("☺");
   const [urgency, setUrgency] = useState("Media");
-  const [entryTime, setEntryTime] = useState(() => {
-    const now = new Date();
-    return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  });
-  const [needDate, setNeedDate] = useState(() => {
-    const today = new Date();
-    const plusWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const y = plusWeek.getFullYear();
-    const m = String(plusWeek.getMonth() + 1).padStart(2, "0");
-    const d = String(plusWeek.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  });
-  const [entries, setEntries] = usePersistentState<LogEntry[]>("log:entries", seedLogEntries);
+  const [entryTime, setEntryTime] = useState(() => nowTime());
+  const [needDate, setNeedDate] = useState(() => plusDaysISO(7));
+  // Migración: entradas guardadas antes de tener fecha se consideran de hoy.
+  const [rawEntries, setEntries] = usePersistentState<LogEntry[]>("log:entries", seedLogEntries);
+  const entries = rawEntries.map((entry) => ({ ...entry, date: entry.date ?? todayISO() }));
   const [needs, setNeeds] = usePersistentState<NeedItem[]>("needs:items", seedNeeds);
   const [deletingEntry, setDeletingEntry] = useState<number | null>(null);
   const openNeeds = needs.filter(
     (need) => !need.claimed && (need.kind !== "economica" || (need.raised ?? 0) < (need.goal ?? 0)),
   ).length;
-  const openTimeline = (day: number) => {
-    setSelectedDay(day);
+  const openTimeline = (iso: string, label: string) => {
+    setSelectedDate({ iso, label });
     setSheetMode("timeline");
     setSheet(true);
   };
@@ -82,7 +78,7 @@ export function Logbook({
           </button>
         </div>
         {segment === "calendar" ? (
-          <CalendarView openDay={openTimeline} />
+          <CalendarView entries={entries} openDay={openTimeline} />
         ) : (
           <NeedsView notify={notify} />
         )}
@@ -96,12 +92,19 @@ export function Logbook({
       </Button>
       {sheet && sheetMode === "timeline" && (
         <ActionSheet
-          title={`${selectedDay} de noviembre de 2026`}
+          title={selectedDate.label}
           subtitle="BITÁCORA DEL DÍA"
           close={() => setSheet(false)}
         >
           <div className="timeline">
-            {entries.map((entry, index) => (
+            {entries.filter((entry) => entry.date === selectedDate.iso).length === 0 && (
+              <p style={{ color: "var(--muted)", margin: "4px 0 12px" }}>
+                No hay registros para este día. Puedes agregar el primero abajo.
+              </p>
+            )}
+            {entries
+              .filter((entry) => entry.date === selectedDate.iso)
+              .map((entry, index) => (
               <div className="timeline-item" key={`${entry.time}-${index}`}>
                 <span className="timeline-time">{entry.time}</span>
                 <span
@@ -158,8 +161,7 @@ export function Logbook({
               value={entryNote}
               onChange={setEntryNote}
               placeholder="¿Qué ocurrió?"
-            />
-            <div className="mood-picker">
+            />            <div className="mood-picker">
               <span>Estado de ánimo</span>
               <div>
                 {["☺", "🙂", "•‿•", "•︵•"].map((item) => (
@@ -188,9 +190,10 @@ export function Logbook({
                   return;
                 }
                 setEntries((current) =>
-                  [...current, { time: entryTime, category, note: entryNote.trim(), mood }].sort(
-                    (a, b) => a.time.localeCompare(b.time),
-                  ),
+                  [
+                    ...current,
+                    { time: entryTime, category, note: entryNote.trim(), mood, date: todayISO() },
+                  ].sort((a, b) => a.time.localeCompare(b.time)),
                 );
                 setSheetMode("timeline");
                 setEntryNote("");
@@ -226,7 +229,13 @@ export function Logbook({
               onChange={setNeedTitle}
               placeholder="Describe el apoyo"
             />
-            <FormField label="Fecha" type="date" value={needDate} onChange={setNeedDate} />
+            <FormField
+              label="Fecha"
+              type="date"
+              value={needDate}
+              onChange={setNeedDate}
+              min={todayISO()}
+            />
             <div className="priority-picker">
               <span>Urgencia</span>
               {[
