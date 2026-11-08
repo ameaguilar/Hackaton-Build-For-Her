@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" fill="none" role="img" aria-label="icnu">
+<title>icnu — El cuidado nos conecta</title>
+<svg x="0" y="0" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="19" fill="#2B70D3"/>
+  <path d="M35 17c-8-5-18-1-21 7-3 9 2 18 10 21l8 3" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M29 47c8 5 18 1 21-7 3-9-2-18-10-21l-8-3" stroke="#B9D9FF" stroke-width="6" stroke-linecap="round"/>
+</svg>
+
+<g stroke="#203D67" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+<path d="M89 32v24"/><path d="M125 35c-8-8-24-4-24 10s16 18 24 10"/>
+<path d="M141 58V32m0 12c0-17 24-17 24 0v14"/>
+<path d="M182 32v15c0 17 24 17 24 0V32"/>
+</g>
+<circle cx="89" cy="20" r="4.3" fill="#203D67"/><circle cx="223" cy="56" r="4" fill="#4687DE"/>
+</svg>
